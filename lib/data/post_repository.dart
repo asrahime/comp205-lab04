@@ -1,5 +1,6 @@
 import 'package:http/http.dart' as http;
-
+import 'dart:async';
+import 'dart:convert';
 import '../models/post.dart';
 import 'post_cache.dart';
 
@@ -32,15 +33,25 @@ class PostRepository {
   /// Status 200 -> decode the body (jsonDecode, from 'dart:convert') into a list of Post.
   /// Any other status -> throw ApiException(statusCode).
   Future<List<Post>> fetchFromNetwork() async {
-    // TODO(2)
-    throw UnimplementedError('fetchFromNetwork');
+
+      final http.Response response = await client.get(postsUri).timeout(const Duration(seconds: 10));
+
+  if (response.statusCode != 200) {
+    throw ApiException(response.statusCode);
   }
+  final List<dynamic> jsonList = jsonDecode(response.body);
+
+  return jsonList.map((json) {
+    return Post.fromJson(json);
+  }).toList();
+}
+  
 
   /// Part 3: network first. On success, save to the cache and return
   /// PostsResult(posts, fromCache: false). On ANY failure, return the cached posts
   /// with fromCache: true - or rethrow the error if the cache is empty.
   Future<PostsResult> loadPosts() async {
     // TODO(3)
-    throw UnimplementedError('loadPosts');
+        
   }
 }
