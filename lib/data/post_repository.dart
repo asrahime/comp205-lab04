@@ -45,13 +45,22 @@ class PostRepository {
     return Post.fromJson(json);
   }).toList();
 }
-  
-
-  /// Part 3: network first. On success, save to the cache and return
-  /// PostsResult(posts, fromCache: false). On ANY failure, return the cached posts
-  /// with fromCache: true - or rethrow the error if the cache is empty.
   Future<PostsResult> loadPosts() async {
-    // TODO(3)
-        
+  try {
+    final posts = await fetchFromNetwork();
+
+    await cache.save(posts);
+
+    return PostsResult(posts, fromCache: false);
+  } catch (e) {
+    final cachedPosts = await cache.load();
+
+    if (cachedPosts.isNotEmpty) {
+      return PostsResult(cachedPosts, fromCache: true);
+    }
+
+    rethrow;
   }
+}
+
 }

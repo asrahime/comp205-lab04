@@ -15,9 +15,23 @@ class PostsViewModel extends ChangeNotifier {
   bool offline = false;
   String? error;
 
-  /// TODO(4.1): set loading (notify), call _repository.loadPosts(), store posts and
-  /// offline (= result.fromCache). On an error set
-  ///   error = 'Could not load posts. Check your connection.'
-  /// Always end with loading = false and notifyListeners().
-  Future<void> load() async {}
+  
+  Future<void> load() async {
+     loading = true;
+  error = null;
+  notifyListeners();
+
+  try {
+    final result = await _repository.loadPosts();
+
+    posts = result.posts;
+    offline = result.fromCache;
+  } catch (e) {
+    error = 'Could not load posts. Check your connection.';
+  } finally {
+    loading = false;
+    notifyListeners();
+  }
+
+  }
 }

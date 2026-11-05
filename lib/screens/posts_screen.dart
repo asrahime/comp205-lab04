@@ -19,7 +19,66 @@ class PostsScreen extends StatelessWidget {
       //    'Offline - showing saved posts', then an Expanded list of ListTiles
       //    (title, and the body as subtitle with maxLines: 2)
       //  - bonus: RefreshIndicator for pull-to-refresh
-      body: Center(child: Text('${vm.posts.length} posts - TODO')),
+    body: Builder(
+  builder: (context) {
+    if (vm.loading && vm.posts.isEmpty) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    if (vm.error != null && vm.posts.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(vm.error!),
+            const SizedBox(height: 16),
+            FilledButton(
+              onPressed: () => vm.load(),
+              child: const Text('Try again'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        if (vm.offline)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            color: Colors.orange,
+            child: const Text(
+              'Offline - showing saved posts',
+              textAlign: TextAlign.center,
+            ),
+          ),
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: vm.load,
+            child: ListView.builder(
+              itemCount: vm.posts.length,
+              itemBuilder: (context, index) {
+                final post = vm.posts[index];
+
+                return ListTile(
+                  title: Text(post.title),
+                  subtitle: Text(
+                    post.body,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  },
+),
     );
   }
 }
