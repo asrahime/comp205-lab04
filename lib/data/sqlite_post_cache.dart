@@ -26,15 +26,40 @@ class SqlitePostCache implements PostCache {
 
   @override
   Future<void> save(List<Post> posts) async {
-    // TODO(5.1): in one transaction: delete all rows, then insert every post
-    // (columns id, user_id, title, body).
-    await _open();
+    
+    final db = await _open();
+
+    await db.transaction((txn) async {
+      await txn.delete('posts');
+
+      for (final post in posts) {
+        await txn.insert('posts', {
+          'id': post.id,
+          'user_id': post.userId,
+          'title': post.title,
+          'body': post.body,
+        });
+      }
+    });
   }
 
   @override
   Future<List<Post>> load() async {
-    // TODO(5.2): query all rows ordered by id and turn each row back into a Post.
-    await _open();
-    return [];
+    final db = await _open();
+
+  final rows = await db.query(
+    'posts',
+    orderBy: 'id ASC',
+  );
+
+  return rows.map((row) {
+    return Post(
+      id: row['id'] as int,
+      userId: row['user_id'] as int,
+      title: row['title'] as String,
+      body: row['body'] as String,
+    );
+  }).toList();
+  
   }
 }
